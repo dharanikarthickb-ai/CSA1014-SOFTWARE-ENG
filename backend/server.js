@@ -58,6 +58,14 @@ app.get('/api/alerts', (req, res) => {
   res.json(alerts);
 });
 
+// Simple anomaly threshold check (added on feature/anomaly-threshold)
+const ENERGY_THRESHOLD_KWH = 80;
+
+app.get('/api/alerts/energy-anomalies', (req, res) => {
+  const anomalies = energyReadings.filter(e => e.kwh > ENERGY_THRESHOLD_KWH);
+  res.json(anomalies);
+});
+
 app.listen(PORT, () => {
   console.log(`Smart Campus backend running on port ${PORT}`);
 });
