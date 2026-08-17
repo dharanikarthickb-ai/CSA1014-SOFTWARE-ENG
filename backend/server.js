@@ -61,3 +61,22 @@ app.get('/api/alerts', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Smart Campus backend running on port ${PORT}`);
 });
+
+// Maintenance request endpoint (added on feature/maintenance-endpoint)
+let maintenanceRequests = [];
+
+app.post('/api/maintenance', (req, res) => {
+  const request = {
+    id: maintenanceRequests.length + 1,
+    resourceId: req.body.resourceId,
+    description: req.body.description || '',
+    status: 'Open',
+    createdAt: new Date().toISOString(),
+  };
+  maintenanceRequests.push(request);
+  res.status(201).json(request);
+});
+
+app.get('/api/maintenance', (req, res) => {
+  res.json(maintenanceRequests);
+});
