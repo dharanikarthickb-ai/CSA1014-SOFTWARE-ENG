@@ -69,10 +69,6 @@ app.get('/api/alerts/energy-anomalies', (req, res) => {
   res.json(anomalies);
 });
 
-app.listen(PORT, () => {
-  console.log(`Smart Campus backend running on port ${PORT}`);
-});
-
 // Maintenance request endpoint (added on feature/maintenance-endpoint)
 let maintenanceRequests = [];
 
@@ -90,4 +86,8 @@ app.post('/api/maintenance', (req, res) => {
 
 app.get('/api/maintenance', (req, res) => {
   res.json(maintenanceRequests);
+});
+
+app.listen(PORT, () => {
+  console.log(`Smart Campus backend running on port ${PORT}`);
 });
