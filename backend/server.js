@@ -5,7 +5,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PORT = process.env.PORT || 5050; // changed on develop
+// Resolved conflict: standardize on env var (see .env.example BACKEND_PORT),
+// falling back to the original default of 5000 rather than either branch's
+// ad-hoc local value.
+const PORT = process.env.PORT || 5000;
 
 // --- Mock in-memory "IoT" data --------------------------------------------
 
@@ -68,4 +71,23 @@ app.get('/api/alerts/energy-anomalies', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Smart Campus backend running on port ${PORT}`);
+});
+
+// Maintenance request endpoint (added on feature/maintenance-endpoint)
+let maintenanceRequests = [];
+
+app.post('/api/maintenance', (req, res) => {
+  const request = {
+    id: maintenanceRequests.length + 1,
+    resourceId: req.body.resourceId,
+    description: req.body.description || '',
+    status: 'Open',
+    createdAt: new Date().toISOString(),
+  };
+  maintenanceRequests.push(request);
+  res.status(201).json(request);
+});
+
+app.get('/api/maintenance', (req, res) => {
+  res.json(maintenanceRequests);
 });
