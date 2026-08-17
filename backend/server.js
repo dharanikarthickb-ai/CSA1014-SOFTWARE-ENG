@@ -32,6 +32,7 @@ let alerts = [
 
 // --- Routes ------------------------------------------------------------
 
+// Used by Docker's HEALTHCHECK instruction (see backend/Dockerfile)
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'smart-campus-backend', time: new Date().toISOString() });
 });
