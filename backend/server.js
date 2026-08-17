@@ -5,6 +5,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Resolved conflict: standardize on env var (see .env.example BACKEND_PORT),
+// falling back to the original default of 5000 rather than either branch's
+// ad-hoc local value.
 const PORT = process.env.PORT || 5000;
 
 // --- Mock in-memory "IoT" data --------------------------------------------
@@ -29,6 +32,7 @@ let alerts = [
 
 // --- Routes ------------------------------------------------------------
 
+// Used by Docker's HEALTHCHECK instruction (see backend/Dockerfile)
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'smart-campus-backend', time: new Date().toISOString() });
 });
@@ -56,6 +60,33 @@ app.get('/api/energy', (req, res) => {
 
 app.get('/api/alerts', (req, res) => {
   res.json(alerts);
+});
+
+// Simple anomaly threshold check (added on feature/anomaly-threshold)
+const ENERGY_THRESHOLD_KWH = 80;
+
+app.get('/api/alerts/energy-anomalies', (req, res) => {
+  const anomalies = energyReadings.filter(e => e.kwh > ENERGY_THRESHOLD_KWH);
+  res.json(anomalies);
+});
+
+// Maintenance request endpoint (added on feature/maintenance-endpoint)
+let maintenanceRequests = [];
+
+app.post('/api/maintenance', (req, res) => {
+  const request = {
+    id: maintenanceRequests.length + 1,
+    resourceId: req.body.resourceId,
+    description: req.body.description || '',
+    status: 'Open',
+    createdAt: new Date().toISOString(),
+  };
+  maintenanceRequests.push(request);
+  res.status(201).json(request);
+});
+
+app.get('/api/maintenance', (req, res) => {
+  res.json(maintenanceRequests);
 });
 
 app.listen(PORT, () => {
