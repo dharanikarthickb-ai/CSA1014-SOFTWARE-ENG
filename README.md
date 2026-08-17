@@ -1,4 +1,4 @@
-# Smart University Campus Resource Management System — Demo
+# Smart University Campus Resource Management System — Demo (v1.0.0)
 
 A minimal full-stack demo used to illustrate the **Git version-control workflow**
 and **Docker containerization** for the Smart Campus project.
