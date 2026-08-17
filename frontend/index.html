@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Smart Campus Resource Dashboard</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    margin: 0;
+    padding: 2rem;
+  }
+  h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+  p.sub { color: #94a3b8; margin-top: 0; margin-bottom: 2rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+  }
+  .card h3 { margin: 0 0 0.5rem 0; font-size: 1rem; }
+  .status { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+  .Available { background: #14532d; color: #86efac; }
+  .In.Use, .InUse { background: #78350f; color: #fcd34d; }
+  .Warning { background: #7f1d1d; color: #fca5a5; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+  th, td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid #334155; font-size: 0.9rem; }
+  th { color: #94a3b8; font-weight: 500; }
+  .alert-box { background: #451a1a; border: 1px solid #7f1d1d; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+  #api-status { font-size: 0.8rem; color: #64748b; }
+</style>
+</head>
+<body>
+  <h1>Smart University Campus Resource Dashboard</h1>
+  <p class="sub">Live view of campus resources, energy usage, and ML-predicted alerts (demo data).</p>
+
+  <div id="alerts"></div>
+
+  <h3>Resources</h3>
+  <table id="resources-table">
+    <thead>
+      <tr><th>Name</th><th>Type</th><th>Status</th><th>Occupancy</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h3>Energy Usage by Zone (kWh)</h3>
+  <div class="grid" id="energy-grid"></div>
+
+  <p id="api-status">Connecting to backend...</p>
+
+<script>
+  const API_BASE = window.API_BASE || 'http://localhost:5000';
+
+  async function load() {
+    const statusEl = document.getElementById('api-status');
+    try {
+      const [resources, energy, alerts] = await Promise.all([
+        fetch(`${API_BASE}/api/resources`).then(r => r.json()),
+        fetch(`${API_BASE}/api/energy`).then(r => r.json()),
+        fetch(`${API_BASE}/api/alerts`).then(r => r.json()),
+      ]);
+
+      const tbody = document.querySelector('#resources-table tbody');
+      tbody.innerHTML = resources.map(r => `
+        <tr>
+          <td>${r.name}</td>
+          <td>${r.type}</td>
+          <td><span class="status ${r.status.replace(' ', '.')}">${r.status}</span></td>
+          <td>${r.occupancy !== null ? r.occupancy + ' / ' + r.capacity : '-'}</td>
+        </tr>
+      `).join('');
+
+      const energyGrid = document.getElementById('energy-grid');
+      energyGrid.innerHTML = energy.map(e => `
+        <div class="card">
+          <h3>${e.zone}</h3>
+          <div style="font-size:1.5rem;font-weight:700;">${e.kwh} kWh</div>
+        </div>
+      `).join('');
+
+      const alertsDiv = document.getElementById('alerts');
+      alertsDiv.innerHTML = alerts.map(a => `
+        <div class="alert-box"><strong>${a.severity} alert:</strong> ${a.message}</div>
+      `).join('');
+
+      statusEl.textContent = `Connected to ${API_BASE} - last updated ${new Date().toLocaleTimeString()}`;
+    } catch (err) {
+      statusEl.textContent = `Could not reach backend at ${API_BASE}: ${err.message}`;
+    }
+  }
+
+  load();
+  setInterval(load, 5000);
+</script>
+</body>
+</html>
